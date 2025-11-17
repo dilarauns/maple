@@ -36,7 +36,7 @@ class AuthSession {
     return Storage.get(AuthSession.sessionKey_phone_number);
   }
 
-  static getRoles(): number {
+  static getRoles(): any {
     return Storage.get(AuthSession.sessionKey_roles);
   }
 
@@ -68,7 +68,7 @@ class AuthSession {
     Storage.set(AuthSession.sessionKey_email, tokenValue);
   }
 
-  static setRoles(tokenValue: string): void {
+  static setRoles(tokenValue: any): void {
     Storage.set(AuthSession.sessionKey_roles, tokenValue);
   }
 

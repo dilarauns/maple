@@ -6,13 +6,13 @@ type ProfileCardProps = {
     profile: UserInstance;
 };
 
-const ProfileCard = ({ profile }: ProfileCardProps) => {
+ const ProfileCard = ({ profile }: ProfileCardProps) => {  
   return (
     <div className="profile-section">
       <div className="profile-info">
         <h2>Welcome, {profile?.name}</h2>
         <p>{profile?.email ?? AuthSession.getEmail()}</p>
-        <p>{/*profile?.role ??*/ AuthSession.getRoles()}</p>
+        <p>Role: {profile?.role?.name ?? AuthSession.getRoles()?.name ?? 'No Role'}</p>
       </div>
     </div>
   );

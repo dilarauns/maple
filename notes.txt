@@ -1,0 +1,10 @@
+**1. ProfileCard Bileşeni – Rol Gösterimi**
+saga.ts icerinde role u stringe cevirmek yerine direkt obje olark aldim, static setRoles(tokenValue: any) yapitim cunku 
+role: {
+  id: 1,
+  name: "Admin"
+} icerigi bu sekilde oldugu icin 
+session.ts icerisindeki getrole fonksiyonunun parametre tipini any ile duzelttim 
+index icerinde role bilgisi alinan yeri profile?.role?.name ?? AuthSession.getRoles()?.name ?? 'No Role' seklinde revize ettim 
+
+**2. Calendar Bug ve Event Detayı**

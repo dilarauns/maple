@@ -27,7 +27,7 @@ function* asyncLogin({
     AuthSession.setPhoneNumber(response.data!.phoneNumber);
     AuthSession.setOrganizationId(response.data!.organizationId);
     AuthSession.setDepartmentId(response.data!.currentDepartmentId);
-    AuthSession.setRoles(`${response.data!.role}`);
+    AuthSession.setRoles(response.data!.role);
     AuthSession.setLanguage(response.data.language);
 
     onSuccess && onSuccess(response);

@@ -18,6 +18,43 @@ dayjs.extend(utc);
 dayjs.extend(isSameOrBefore);
 dayjs.extend(customParseFormat);
 
+const STAFF_COLORS = [
+  '#7a2020ff', 
+  '#30746fff', 
+  '#0f9ebeff', 
+  '#ca3d05ff', 
+  '#125040ff', 
+  '#F7DC6F', 
+  '#BB8FCE', 
+  '#164c69ff', 
+  '#F8B739', 
+  '#52B788', 
+  '#E63946', 
+  '#1c3d52ff', 
+  '#80522dff', 
+  '#2A9D8F', 
+  '#973219ff', 
+  '#8E44AD', 
+  '#3498DB', 
+  '#E74C3C', 
+  '#1ABC9C', 
+  '#F39C12', 
+];
+
+
+const getStaffColor = (index: number): string => {
+  return STAFF_COLORS[index % STAFF_COLORS.length];
+};
+
+const getShiftColor = (shiftName: string): string => {
+  const lowerName = shiftName.toLowerCase();
+  if (lowerName.includes('morning') || lowerName.includes('sabah') || lowerName.includes('gündüz') || lowerName.includes('gunduz')) {
+    return '#F7DC6F'; 
+  } else {
+    return '#1B4F72'; 
+  }
+};
+
 type CalendarContainerProps = {
   schedule: ScheduleInstance;
   auth: UserInstance;
@@ -51,12 +88,14 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
         const shift = schedule?.shifts?.find(s => s.id === assignment.shiftId);
         
         if (shift) {
-          const shiftIndex = schedule?.shifts?.findIndex(s => s.id === shift.id) ?? 0;
+          const shiftColor = getShiftColor(shift.name);
           
           works.push({
             title: shift.name,
             date: dayjs(assignment.shiftStart).format("YYYY-MM-DD"),
-            className: `shift-color-${shiftIndex % 2}`,
+            className: `staff-event`,
+            backgroundColor: shiftColor,
+            borderColor: shiftColor,
             extendedProps: {
               staffName: selectedStaff.name,
               shiftName: shift.name,
@@ -75,13 +114,16 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
         const pairStaff = schedule?.staffs?.find(s => s.id === pair.staffId);
         
         if (pairStaff && startDate.isValid() && endDate.isValid()) {
+          const pairStaffIndex = schedule?.staffs?.findIndex(s => s.id === pair.staffId) ?? 0;
+          const pairColor = getStaffColor(pairStaffIndex);
           let currentDate = startDate;
           
           while (currentDate.isSameOrBefore(endDate, 'day')) {
             works.push({
-              title: `Eş: ${pairStaff.name}`,
               date: currentDate.format("YYYY-MM-DD"),
               className: 'pair-event',
+              backgroundColor: pairColor,
+              borderColor: pairColor,
               extendedProps: {
                 staffName: selectedStaff.name,
                 pairName: pairStaff.name,
@@ -148,17 +190,25 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
     <div className="calendar-section">
       <div className="calendar-wrapper">
         <div className="staff-list">
-          {schedule?.staffs?.map((staff: any) => (
-            <div
-              key={staff.id}
-              onClick={() => setSelectedStaffId(staff.id)}
-              className={`staff ${
-                staff.id === selectedStaffId ? "active" : ""
-              }`}
-            >
-              <span>{staff.name}</span>
-            </div>
-          ))}
+          {schedule?.staffs?.map((staff: any, index: number) => {
+            const staffColor = getStaffColor(index);
+            return (
+              <div
+                key={staff.id}
+                onClick={() => setSelectedStaffId(staff.id)}
+                className={`staff ${
+                  staff.id === selectedStaffId ? "active" : ""
+                }`}
+                style={{
+                  backgroundColor: staff.id === selectedStaffId ? staffColor : '#ffffff',
+                  borderColor: staffColor,
+                  color: staff.id === selectedStaffId ? '#ffffff' : staffColor
+                }}
+              >
+                <span>{staff.name}</span>
+              </div>
+            );
+          })}
         </div>
         <FullCalendar
           ref={calendarRef}
@@ -183,21 +233,11 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
               <p>{eventInfo.event.title}</p>
             </div>
           )}
-          datesSet={(info: any) => {
-            const prevButton = document.querySelector(".fc-prev-button") as HTMLButtonElement;
-            const nextButton = document.querySelector(".fc-next-button") as HTMLButtonElement;
-
+          datesSet={() => {
             if (calendarRef?.current?.getApi().getDate() && 
                 !dayjs(schedule?.scheduleStartDate).isSame(calendarRef?.current?.getApi().getDate())) {
               setInitialDate(calendarRef?.current?.getApi().getDate());
             }
-
-            const startDiff = dayjs(info.start).utc()
-              .diff(dayjs(schedule.scheduleStartDate).subtract(1, "day").utc(), "days");
-            const endDiff = dayjs(schedule.scheduleEndDate).diff(info.end, "days");
-            
-            prevButton.disabled = startDiff < 0 && startDiff > -35;
-            nextButton.disabled = endDiff < 0 && endDiff > -32;
           }}
           dayCellClassNames={(arg: any) => {
             const selectedStaff = schedule?.staffs?.find(s => s.id === selectedStaffId);

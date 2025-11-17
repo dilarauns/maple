@@ -18,3 +18,6 @@ takvim uzerinde secilen eventin bilgileri icin gerekli olan tanimlar
 generateStaffBasedCalendar icerisine const works: any[] = []; tanimliyoruz artik secilen staffin butun eventleri burada kayit edilecek
 alinan bilgiler dogrultusunda pair sayisina gore donguye soktum her pair sayisi kadar takvim uzerinde pair bilgisini isledim
 if (selectedStaff.pairList && selectedStaff.pairList.length > 0)
+
+**3. Pair Günlerinin Altını Çizme** (25P)
+renk tanimlari yapildi ve css ayarlandi 

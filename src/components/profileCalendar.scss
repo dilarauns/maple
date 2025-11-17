@@ -42,30 +42,47 @@
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  margin-bottom: 20px;
 
   .staff {
-    min-height: 32px;
-    padding: 0 12px;
+    min-height: 36px;
+    padding: 0 16px;
     display: flex;
     align-items: center;
-    background: #ffffff;
-    color: #19979c;
-    border: 1px solid #19979c;
+    border: 2px solid;
     border-radius: 8px;
     text-transform: capitalize;
     transition: all 0.3s;
     cursor: pointer;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
     &.active {
-      background: #19979c;
-      color: #ffffff;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+      transform: translateY(-1px);
+    }
+
+    &:hover:not(.active) {
+      opacity: 0.85;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    span {
+      font-size: 14px;
     }
   }
 }
 
-// Event renklendirme - Shift bazlı (2 vardiya için)
-.shift-color-0 { background: #4A90E2 !important; border-color: #357ABD !important; } // Morning - Mavi
-.shift-color-1 { background: #7ED321 !important; border-color: #5FA319 !important; } // Night - Yeşil// Event Modal
+// Event renklendirme - Staff bazlı
+.staff-event {
+  font-weight: 500;
+  border-left-width: 4px !important;
+  
+  .fc-event-main {
+    color: #ffffff !important;
+  }
+}// Event Modal
 .event-modal-overlay {
   position: fixed;
   top: 0;
@@ -164,15 +181,12 @@
 }
 
 .pair-event {
-  background: linear-gradient(135deg, rgba(155, 89, 182, 0.7) 0%, rgba(142, 68, 173, 0.7) 100%) !important;
-  border: 2px solid rgba(125, 60, 152, 0.8) !important;
-  border-left: 4px solid rgba(108, 52, 131, 0.8) !important;
   opacity: 0.85 !important;
   font-weight: 600 !important;
-  box-shadow: 0 2px 4px rgba(155, 89, 182, 0.2) !important;
   
   .fc-event-main {
     color: #ffffff !important;
+    height: 3px !important;
   }
   
   .event-content p {

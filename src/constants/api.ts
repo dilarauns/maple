@@ -30,7 +30,7 @@ export const scheduleReponse = {
         specialDaysRequiredPersonnel: [],
       },
       {
-        id: "1d8bd052-3750-4d5d-bdaa-70055737a25r",
+        id: "760c58e4-fc37-49a4-a867-41d2836baa11",
         name: "Night",
         shiftStart: "17:30",
         shiftEnd: "21:00",
@@ -484,8 +484,8 @@ export const scheduleReponse = {
       {
         id: "92461525-7355-4161-9703-7401c22763c3",
         staffId: "6a003ce0-f3e4-43e4-9f3d-f8850297ffa8",
-        shiftId: "1d8bd052-3750-4d5d-bdaa-70055737a25r",
-        shiftStart: "2025-10-11T017:30:00.000Z",
+        shiftId: "760c58e4-fc37-49a4-a867-41d2836baa11",
+        shiftStart: "2025-10-11T17:30:00.000Z",
         shiftEnd: "2025-10-11T21:00:00.000Z",
         isUpdated: false,
       },
@@ -516,7 +516,7 @@ export const scheduleReponse = {
       {
         id: "79c42810-549f-4c8d-91f2-f127b44deeee",
         staffId: "8be9deb6-7560-4d62-a9cd-b0daf0c6895a",
-        shiftId: "1d8bd052-3750-4d5d-bdaa-70055737a25r",
+        shiftId: "760c58e4-fc37-49a4-a867-41d2836baa11",
         shiftStart: "2025-10-30T17:30:00.000Z",
         shiftEnd: "2025-10-30T21:00:00.000Z",
         isUpdated: false,
@@ -532,7 +532,7 @@ export const scheduleReponse = {
       {
         id: "0fa48e97-3c9e-4b09-97f8-d2060f914852",
         staffId: "259df487-436a-4326-93a1-e08dc756ff67",
-        shiftId: "1d8bd052-3750-4d5d-bdaa-70055737a25r",
+        shiftId: "760c58e4-fc37-49a4-a867-41d2836baa11",
         shiftStart: "2025-10-27T17:30:00.000Z",
         shiftEnd: "2025-10-27T21:00:00.000Z",
         isUpdated: false,
@@ -548,7 +548,7 @@ export const scheduleReponse = {
       {
         id: "8b2010b9-ba90-492c-99f6-e43051d44078",
         staffId: "259df487-436a-4326-93a1-e08dc756ff67",
-        shiftId: "1d8bd052-3750-4d5d-bdaa-70055737a25r",
+        shiftId: "760c58e4-fc37-49a4-a867-41d2836baa11",
         shiftStart: "2025-10-29T17:30:00.000Z",
         shiftEnd: "2025-10-29T21:00:00.000Z",
         isUpdated: false,

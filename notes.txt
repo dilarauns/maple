@@ -8,3 +8,13 @@ session.ts icerisindeki getrole fonksiyonunun parametre tipini any ile duzelttim
 index icerinde role bilgisi alinan yeri profile?.role?.name ?? AuthSession.getRoles()?.name ?? 'No Role' seklinde revize ettim 
 
 **2. Calendar Bug ve Event Detayı**
+import customParseFormat from "dayjs/plugin/customParseFormat";
+dayjs.extend(customParseFormat);  --"DD.MM.YYYY" formatındaki tarihleri islemek icin gerekli plugin
+
+const [selectedEvent, setSelectedEvent] = useState<any>(null);
+const [showEventModal, setShowEventModal] = useState(false);
+takvim uzerinde secilen eventin bilgileri icin gerekli olan tanimlar
+
+generateStaffBasedCalendar icerisine const works: any[] = []; tanimliyoruz artik secilen staffin butun eventleri burada kayit edilecek
+alinan bilgiler dogrultusunda pair sayisina gore donguye soktum her pair sayisi kadar takvim uzerinde pair bilgisini isledim
+if (selectedStaff.pairList && selectedStaff.pairList.length > 0)

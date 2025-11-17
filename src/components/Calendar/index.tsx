@@ -1,27 +1,22 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useEffect, useRef, useState } from "react";
-
 import type { ScheduleInstance } from "../../models/schedule";
 import type { UserInstance } from "../../models/user";
-
 import FullCalendar from "@fullcalendar/react";
-
 import interactionPlugin from "@fullcalendar/interaction";
 import dayGridPlugin from "@fullcalendar/daygrid";
-
 import type { EventInput } from "@fullcalendar/core/index.js";
-
 import "../profileCalendar.scss";
-
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 
 dayjs.extend(utc);
 dayjs.extend(isSameOrBefore);
+dayjs.extend(customParseFormat);
 
 type CalendarContainerProps = {
   schedule: ScheduleInstance;
@@ -32,118 +27,121 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
   const calendarRef = useRef<FullCalendar>(null);
 
   const [events, setEvents] = useState<EventInput[]>([]);
-  const [highlightedDates, setHighlightedDates] = useState<string[]>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [showEventModal, setShowEventModal] = useState(false);
   const [initialDate, setInitialDate] = useState<Date>(
     dayjs(schedule?.scheduleStartDate).toDate()
   );
 
-  const getPlugins = () => {
-    const plugins = [dayGridPlugin];
-
-    plugins.push(interactionPlugin);
-    return plugins;
-  };
-
-  const getShiftById = (id: string) => {
-    return schedule?.shifts?.find((shift: { id: string }) => id === shift.id);
-  };
-
-  const getAssigmentById = (id: string) => {
-    return schedule?.assignments?.find((assign) => id === assign.id);
-  };
-
-  const validDates = () => {
-    const dates = [];
-    let currentDate = dayjs(schedule.scheduleStartDate);
-    while (
-      currentDate.isBefore(schedule.scheduleEndDate) ||
-      currentDate.isSame(schedule.scheduleEndDate)
-    ) {
-      dates.push(currentDate.format("YYYY-MM-DD"));
-      currentDate = currentDate.add(1, "day");
-    }
-
-    return dates;
-  };
-
-  const getDatesBetween = (startDate: string, endDate: string) => {
-    const dates = [];
-    const start = dayjs(startDate, "DD.MM.YYYY").toDate();
-    const end = dayjs(endDate, "DD.MM.YYYY").toDate();
-    const current = new Date(start);
-
-    while (current <= end) {
-      dates.push(dayjs(current).format("DD-MM-YYYY"));
-      current.setDate(current.getDate() + 1);
-    }
-
-    return dates;
-  };
-
   const generateStaffBasedCalendar = () => {
-    const works: EventInput[] = [];
-
-    const filteredAssignments = schedule?.assignments?.filter(
-      (assign) => assign.staffId === selectedStaffId
-    ) || [];
-
-    for (let i = 0; i < filteredAssignments.length; i++) {
-      const assignmentDate = dayjs
-        .utc(filteredAssignments[i]?.shiftStart)
-        .format("YYYY-MM-DD");
-      const isValidDate = validDates().includes(assignmentDate);
-
-      const work = {
-        id: filteredAssignments[i]?.id,
-        title: getShiftById(filteredAssignments[i]?.shiftId)?.name,
-        duration: "01:00",
-        date: assignmentDate,
-        staffId: filteredAssignments[i]?.staffId,
-        shiftId: filteredAssignments[i]?.shiftId,
-        className: `event ${
-          getAssigmentById(filteredAssignments[i]?.id)?.isUpdated
-            ? "highlight"
-            : ""
-        } ${!isValidDate ? "invalid-date" : ""}`,
-      };
-      works.push(work);
+    const selectedStaff = schedule?.staffs?.find(s => s.id === selectedStaffId);
+    
+    if (!selectedStaff) {
+      setEvents([]);
+      return;
     }
 
-    const offDays = schedule?.staffs?.find(
-      (staff) => staff.id === selectedStaffId
-    )?.offDays;
-    const dates = getDatesBetween(
-      dayjs(schedule.scheduleStartDate).format("DD.MM.YYYY"),
-      dayjs(schedule.scheduleEndDate).format("DD.MM.YYYY")
-    );
-    let highlightedDates: string[] = [];
+    const works: any[] = [];
 
-    dates.forEach((date) => {
-      const transformedDate = dayjs(date, "DD-MM-YYYY").format("DD.MM.YYYY");
-      if (offDays?.includes(transformedDate)) highlightedDates.push(date);
-    });
+    // Add shift assignments
+    schedule?.assignments
+      ?.filter(a => a.staffId === selectedStaffId)
+      .forEach((assignment) => {
+        const shift = schedule?.shifts?.find(s => s.id === assignment.shiftId);
+        
+        if (shift) {
+          const shiftIndex = schedule?.shifts?.findIndex(s => s.id === shift.id) ?? 0;
+          
+          works.push({
+            title: shift.name,
+            date: dayjs(assignment.shiftStart).format("YYYY-MM-DD"),
+            className: `shift-color-${shiftIndex % 2}`,
+            extendedProps: {
+              staffName: selectedStaff.name,
+              shiftName: shift.name,
+              shiftStart: assignment.shiftStart,
+              shiftEnd: assignment.shiftEnd,
+              isPair: false,
+            },
+          });
+        }
+      });
 
-    setHighlightedDates(highlightedDates);
+    if (selectedStaff.pairList && selectedStaff.pairList.length > 0) {
+      selectedStaff.pairList.forEach((pair) => {
+        const startDate = dayjs(pair.startDate, "DD.MM.YYYY", true);
+        const endDate = dayjs(pair.endDate, "DD.MM.YYYY", true);
+        const pairStaff = schedule?.staffs?.find(s => s.id === pair.staffId);
+        
+        if (pairStaff && startDate.isValid() && endDate.isValid()) {
+          let currentDate = startDate;
+          
+          while (currentDate.isSameOrBefore(endDate, 'day')) {
+            works.push({
+              title: `Eş: ${pairStaff.name}`,
+              date: currentDate.format("YYYY-MM-DD"),
+              className: 'pair-event',
+              extendedProps: {
+                staffName: selectedStaff.name,
+                pairName: pairStaff.name,
+                isPair: true,
+              },
+            });
+            
+            currentDate = currentDate.add(1, 'day');
+          }
+        }
+      });
+    }
+
     setEvents(works);
   };
 
   useEffect(() => {
     const firstStaffId = schedule?.staffs?.[0]?.id;
-    setSelectedStaffId(firstStaffId);
-    generateStaffBasedCalendar();
+    if (firstStaffId) {
+      setSelectedStaffId(firstStaffId);
+    }
   }, [schedule]);
 
   useEffect(() => {
-    generateStaffBasedCalendar();
+    if (selectedStaffId) {
+      generateStaffBasedCalendar();
+    }
   }, [selectedStaffId]);
 
-  const RenderEventContent = ({ eventInfo }: any) => {
-    return (
-      <div className="event-content">
-        <p>{eventInfo.event.title}</p>
-      </div>
-    );
+  const handleEventClick = (clickInfo: any) => {
+    const event = clickInfo.event;
+    
+    if (event.extendedProps.isPair) {
+      // Pair event clicked
+      setSelectedEvent({
+        title: event.title,
+        staffName: event.extendedProps.staffName,
+        date: dayjs(event.start).format("DD MMMM YYYY"),
+        pairName: event.extendedProps.pairName,
+        isPair: true,
+      });
+    } else {
+      // Shift event clicked
+      setSelectedEvent({
+        title: event.title,
+        staffName: event.extendedProps.staffName,
+        shiftName: event.extendedProps.shiftName,
+        date: dayjs(event.start).format("DD MMMM YYYY"),
+        startTime: dayjs(event.extendedProps.shiftStart).format("HH:mm"),
+        endTime: dayjs(event.extendedProps.shiftEnd).format("HH:mm"),
+        isPair: false,
+      });
+    }
+    
+    setShowEventModal(true);
+  };
+
+  const closeModal = () => {
+    setShowEventModal(false);
+    setSelectedEvent(null);
   };
 
   return (
@@ -158,14 +156,6 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
                 staff.id === selectedStaffId ? "active" : ""
               }`}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height="20px"
-                viewBox="0 -960 960 960"
-                width="20px"
-              >
-                <path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17-62.5t47-43.5q60-30 124.5-46T480-440q67 0 131.5 16T736-378q30 15 47 43.5t17 62.5v112H160Zm320-400q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm160 228v92h80v-32q0-11-5-20t-15-14q-14-8-29.5-14.5T640-332Zm-240-21v53h160v-53q-20-4-40-5.5t-40-1.5q-20 0-40 1.5t-40 5.5ZM240-240h80v-92q-15 5-30.5 11.5T260-306q-10 5-15 14t-5 20v32Zm400 0H320h320ZM480-640Z" />
-              </svg>
               <span>{staff.name}</span>
             </div>
           ))}
@@ -173,7 +163,7 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
         <FullCalendar
           ref={calendarRef}
           locale={auth.language}
-          plugins={getPlugins()}
+          plugins={[dayGridPlugin, interactionPlugin]}
           contentHeight={400}
           handleWindowResize={true}
           selectable={true}
@@ -187,61 +177,85 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
           dayMaxEventRows={4}
           fixedWeekCount={true}
           showNonCurrentDates={true}
+          eventClick={handleEventClick}
           eventContent={(eventInfo: any) => (
-            <RenderEventContent eventInfo={eventInfo} />
+            <div className="event-content">
+              <p>{eventInfo.event.title}</p>
+            </div>
           )}
           datesSet={(info: any) => {
-            const prevButton = document.querySelector(
-              ".fc-prev-button"
-            ) as HTMLButtonElement;
-            const nextButton = document.querySelector(
-              ".fc-next-button"
-            ) as HTMLButtonElement;
+            const prevButton = document.querySelector(".fc-prev-button") as HTMLButtonElement;
+            const nextButton = document.querySelector(".fc-next-button") as HTMLButtonElement;
 
-            if (
-              calendarRef?.current?.getApi().getDate() &&
-              !dayjs(schedule?.scheduleStartDate).isSame(
-                calendarRef?.current?.getApi().getDate()
-              )
-            )
+            if (calendarRef?.current?.getApi().getDate() && 
+                !dayjs(schedule?.scheduleStartDate).isSame(calendarRef?.current?.getApi().getDate())) {
               setInitialDate(calendarRef?.current?.getApi().getDate());
+            }
 
-            const startDiff = dayjs(info.start)
-              .utc()
-              .diff(
-                dayjs(schedule.scheduleStartDate).subtract(1, "day").utc(),
-                "days"
-              );
-            const endDiff = dayjs(dayjs(schedule.scheduleEndDate)).diff(
-              info.end,
-              "days"
-            );
-            if (startDiff < 0 && startDiff > -35) prevButton.disabled = true;
-            else prevButton.disabled = false;
-
-            if (endDiff < 0 && endDiff > -32) nextButton.disabled = true;
-            else nextButton.disabled = false;
+            const startDiff = dayjs(info.start).utc()
+              .diff(dayjs(schedule.scheduleStartDate).subtract(1, "day").utc(), "days");
+            const endDiff = dayjs(schedule.scheduleEndDate).diff(info.end, "days");
+            
+            prevButton.disabled = startDiff < 0 && startDiff > -35;
+            nextButton.disabled = endDiff < 0 && endDiff > -32;
           }}
-          dayCellContent={({ date }) => {
-            const found = validDates().includes(
-              dayjs(date).format("YYYY-MM-DD")
-            );
-            const isHighlighted = highlightedDates.includes(
-              dayjs(date).format("DD-MM-YYYY")
-            );
-
-            return (
-              <div
-                className={`${found ? "" : "date-range-disabled"} ${
-                  isHighlighted ? "highlighted-date-orange" : ""
-                } highlightedPair`}
-              >
-                {dayjs(date).date()}
-              </div>
-            );
+          dayCellClassNames={(arg: any) => {
+            const selectedStaff = schedule?.staffs?.find(s => s.id === selectedStaffId);
+            const cellDate = dayjs(arg.date).format("DD.MM.YYYY");
+            
+            if (selectedStaff?.offDays?.includes(cellDate)) {
+              return "off-day-cell";
+            }
+            
+            return "";
           }}
         />
       </div>
+      
+      {/* Event Detay Modal */}
+      {showEventModal && selectedEvent && (
+        <div className="event-modal-overlay" onClick={closeModal}>
+          <div className="event-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Vardiya Detayı</h3>
+              <button className="close-btn" onClick={closeModal}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="detail-row">
+                <span className="label">Personel:</span>
+                <span className="value">{selectedEvent.staffName}</span>
+              </div>
+              {selectedEvent.isPair ? (
+                <>
+                  <div className="detail-row">
+                    <span className="label">Eş:</span>
+                    <span className="value">{selectedEvent.pairName}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="label">Tarih:</span>
+                    <span className="value">{selectedEvent.date}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="detail-row">
+                    <span className="label">Vardiya:</span>
+                    <span className="value">{selectedEvent.shiftName}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="label">Tarih:</span>
+                    <span className="value">{selectedEvent.date}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="label">Saat:</span>
+                    <span className="value">{selectedEvent.startTime} - {selectedEvent.endTime}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -7,11 +7,13 @@ import types from './types';
 export interface UiState {
   progressStatus: boolean;
   errorToastr: number;
+  isDarkMode: boolean;
 }
 
 const initialState: UiState = {
   progressStatus: false,
   errorToastr: 0,
+  isDarkMode: false,
 };
 
 const UiReducer = {
@@ -26,6 +28,11 @@ const UiReducer = {
   [types.ERROR_TOASTR]: (state: UiState, { payload }: Action<typeof state.errorToastr>) => ({
     ...state,
     errorToastr: payload,
+  }),
+  
+  [types.SET_DARK_MODE]: (state: UiState, { payload }: Action<boolean>) => ({
+    ...state,
+    isDarkMode: payload,
   }),
 };
 

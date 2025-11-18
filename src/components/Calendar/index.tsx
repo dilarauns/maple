@@ -22,15 +22,15 @@ dayjs.extend(isSameOrBefore);
 dayjs.extend(customParseFormat);
 
 const STAFF_COLORS = [
-  '#7a2020d8', 
-  '#30746fd5', 
-  '#0f9ebed8', 
-  '#832b67d2', 
-  '#125041d8', 
   '#fac907d7', 
-  '#bb8fcee8', 
-  '#164c69da', 
   '#76940be3', 
+  '#0f9ebed8', 
+  '#bb8fcee8', 
+  '#e74d3ce7', 
+  '#3498DB', 
+  '#832b67d2', 
+  '#f39d12d3', 
+  '#30746fd5', 
   '#52b788e5', 
   '#e63947e0', 
   '#1c3d52d5', 
@@ -38,10 +38,10 @@ const STAFF_COLORS = [
   '#602a9dd3', 
   '#973219ff', 
   '#8E44AD', 
-  '#3498DB', 
-  '#e74d3ce7', 
+  '#7a2020d8', 
+  '#125041d8', 
   '#064135cb', 
-  '#f39d12d3', 
+  '#164c69da', 
 ];
 
 
@@ -331,7 +331,7 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
         </div>
         
         <div className="staff-info-panel">
-          <h3>Vardiya Bilgileri</h3>
+          <h3> Shift Information</h3>
           
           <div className="shift-blocks">
             {/* Pair bilgileri - tekil olarak */}

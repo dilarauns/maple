@@ -1094,7 +1094,7 @@
 
 .fc .fc-scrollgrid {
   border: none !important;
-  border-spacing: 4px !important;
+  border-spacing: 6px !important;
   border-collapse: separate !important;
   background-color: var(--bg-primary) !important;
 }
@@ -1132,6 +1132,7 @@
   height: flex;
   background-color: var(--bg-secondary) !important;
   box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(220, 205, 185, 0.4) !important;
 }
 
 .fc .fc-col-header-cell-cushion {

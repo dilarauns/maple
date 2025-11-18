@@ -2,6 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import ProfileCard from "../Profile";
 import CalendarContainer from "../Calendar";
+import ShiftBarChart from "../ShiftBarChart";
 
 import { useSelector } from "react-redux";
 import { getAuthUser } from "../../store/auth/selector";
@@ -47,7 +48,10 @@ const ProfileCalendar = () => {
       <button className="dark-mode-toggle" onClick={toggleDarkMode} title={isDarkMode ? 'Light Mode' : 'Dark Mode'}>
         {isDarkMode ? '☀' : '☾'}
       </button>
-      <ProfileCard profile={auth} />
+      <div className="profile-chart-wrapper">
+        <ProfileCard profile={auth} />
+        <ShiftBarChart schedule={schedule} />
+      </div>
       <CalendarContainer schedule={schedule} auth={auth} />
     </div>
   );

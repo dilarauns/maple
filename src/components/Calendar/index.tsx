@@ -87,7 +87,6 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
 
     const works: any[] = [];
 
-    // Add shift assignments
     schedule?.assignments
       ?.filter(a => a.staffId === selectedStaffId)
       .forEach((assignment) => {
@@ -214,7 +213,7 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
     // Check if the new date is an off day for the selected staff
     const selectedStaff = schedule?.staffs?.find(s => s.id === selectedStaffId);
     if (selectedStaff?.offDays?.includes(newDate)) {
-      alert(`${newDate} tarihi ${selectedStaff.name} için izin günüdür. Bu güne vardiya ataması yapılamaz.`);
+      alert(`${newDate} date is an off day for ${selectedStaff.name}. Shift assignments cannot be made on this day.`);
       dropInfo.revert();
       return;
     }
@@ -254,14 +253,7 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
     <div className="calendar-section">
       {showToast && (
         <div className="toast-notification">
-          Kaydedilmemiş değişiklikleriniz var
-        </div>
-      )}
-      {hasChanges && (
-        <div className="save-button-container">
-          <button className="save-btn" onClick={handleSaveChanges}>
-            Kaydet
-          </button>
+          You have unsaved changes
         </div>
       )}
       <div className="calendar-wrapper">
@@ -306,6 +298,21 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
             showNonCurrentDates={true}
             eventClick={handleEventClick}
             eventDrop={handleEventDrop}
+            headerToolbar={{
+              left: '',
+              center: 'title',
+              right: hasChanges ? 'prev,next,today,saveButton' : 'prev,next,today'
+            }}
+            customButtons={{
+              saveButton: {
+                text: 'Save',
+                click: handleSaveChanges,
+                hint: 'Save changes',
+              }
+            }}
+            buttonText={{
+              today: 'Today'
+            }}
             eventContent={(eventInfo: any) => (
               <div className="event-content">
                 <p>{eventInfo.event.title}</p>
@@ -350,15 +357,15 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
                   }}
                 >
                   <div className="detail-row">
-                    <span className="label">Eş Personel:</span>
+                    <span className="label">Shift Pair:</span>
                     <span className="value">{pairStaff.name}</span>
                   </div>
                   <div className="detail-row">
-                    <span className="label">Başlangıç:</span>
+                    <span className="label">Start:</span>
                     <span className="value">{pair.startDate}</span>
                   </div>
                   <div className="detail-row">
-                    <span className="label">Bitiş:</span>
+                    <span className="label">End:</span>
                     <span className="value">{pair.endDate}</span>
                   </div>
                 </div>
@@ -380,15 +387,15 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
                   }`}
                 >
                   <div className="detail-row">
-                    <span className="label">Vardiya:</span>
+                    <span className="label">Shift:</span>
                     <span className="value">{event.extendedProps?.shiftName}</span>
                   </div>
                   <div className="detail-row">
-                    <span className="label">Tarih:</span>
+                    <span className="label">Date:</span>
                     <span className="value">{dayjs(event.date).format("DD MMMM YYYY")}</span>
                   </div>
                   <div className="detail-row">
-                    <span className="label">Saat:</span>
+                    <span className="label">Time:</span>
                     <span className="value">
                       {dayjs(event.extendedProps?.shiftStart).format("HH:mm")} - {dayjs(event.extendedProps?.shiftEnd).format("HH:mm")}
                     </span>
@@ -399,7 +406,7 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
             
             {events.length === 0 && (!schedule?.staffs?.find(s => s.id === selectedStaffId)?.pairList || schedule?.staffs?.find(s => s.id === selectedStaffId)?.pairList?.length === 0) && (
               <div className="info-placeholder">
-                Bu personele ait vardiya bulunmamaktadır
+                No shifts found for this staff member
               </div>
             )}
           </div>
@@ -411,7 +418,7 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
         <div className="event-modal-overlay" onClick={closeModal}>
           <div className="event-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Vardiya Detayı</h3>
+              <h3>Shift Details</h3>
               <button className="close-btn" onClick={closeModal}>×</button>
             </div>
             <div className="modal-body">
@@ -422,26 +429,26 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
               {modalEvent.isPair ? (
                 <>
                   <div className="detail-row">
-                    <span className="label">Eş:</span>
+                    <span className="label">Shift Pair:</span>
                     <span className="value">{modalEvent.pairName}</span>
                   </div>
                   <div className="detail-row">
-                    <span className="label">Tarih:</span>
+                    <span className="label">Date:</span>
                     <span className="value">{modalEvent.date}</span>
                   </div>
                 </>
               ) : (
                 <>
                   <div className="detail-row">
-                    <span className="label">Vardiya:</span>
+                    <span className="label">Shift:</span>
                     <span className="value">{modalEvent.shiftName}</span>
                   </div>
                   <div className="detail-row">
-                    <span className="label">Tarih:</span>
+                    <span className="label">Date:</span>
                     <span className="value">{modalEvent.date}</span>
                   </div>
                   <div className="detail-row">
-                    <span className="label">Saat:</span>
+                    <span className="label">Time:</span>
                     <span className="value">{modalEvent.startTime} - {modalEvent.endTime}</span>
                   </div>
                 </>

@@ -9,10 +9,30 @@ type ProfileCardProps = {
  const ProfileCard = ({ profile }: ProfileCardProps) => {  
   return (
     <div className="profile-section">
-      <div className="profile-info">
-        <h2>Welcome, {profile?.name}</h2>
-        <p>{profile?.email ?? AuthSession.getEmail()}</p>
-        <p>Role: {profile?.role?.name ?? AuthSession.getRoles()?.name ?? 'No Role'}</p>
+      <div className="profile-card">
+        <div className="profile-header">
+          <div className="profile-avatar">
+            {profile?.name?.charAt(0).toUpperCase() || 'U'}
+          </div>
+          <div className="profile-header-info">
+            <h2 className="profile-name">Welcome, {profile?.name}</h2>
+            <p className="profile-role">{profile?.role?.name ?? AuthSession.getRoles()?.name ?? 'No Role'}</p>
+          </div>
+        </div>
+        <div className="profile-details">
+          <div className="profile-detail-item">
+            <div className="detail-content">
+              <span className="detail-label">Email</span>
+              <span className="detail-value">{profile?.email ?? AuthSession.getEmail()}</span>
+            </div>
+          </div>
+          <div className="profile-detail-item">
+              <div className="detail-content">
+              <span className="detail-label">Role</span>
+              <span className="detail-value">{profile?.role?.name ?? AuthSession.getRoles()?.name ?? 'No Role'}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

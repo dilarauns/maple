@@ -21,3 +21,33 @@ if (selectedStaff.pairList && selectedStaff.pairList.length > 0)
 
 **3. Pair Günlerinin Altını Çizme** (25P)
 renk tanimlari yapildi ve css ayarlandi 
+
+**4. Takvimde Sürükle-Bırak ile Event Güncelleme** 
+
+oncelıkle yapılacak ıslemlerımız --> atamayi guncelleme ve kaydetme 
+bunun icin types.ts dosyasinda islemlerin tanimlamasini yaptik -->
+UPDATE_ASSIGNMENT_DATE: "UPDATE_ASSIGNMENT_DATE"
+UPDATE_ASSIGNMENT_DATE_SUCCESS: "UPDATE_ASSIGNMENT_DATE_SUCCESS"
+UPDATE_ASSIGNMENT_DATE_FAILED: "UPDATE_ASSIGNMENT_DATE_FAILED"
+SAVE_SCHEDULE: "SAVE_SCHEDULE"
+SAVE_SCHEDULE_SUCCESS: "SAVE_SCHEDULE_SUCCESS"
+LOAD_SCHEDULE_FROM_STORAGE: "LOAD_SCHEDULE_FROM_STORAGE"
+
+action.ts icerisinde action creatorlari olusturuldu
+createAction(type) → Verdiğin action type için otomatik olarak bir action creator fonksiyonu oluşturur.
+Component'ten çağırdığımızda otomatik olarak {type: "UPDATE_ASSIGNMENT_DATE", payload: data} formatında action objesi oluşturur.
+
+
+store>schedule>index.ts icerisinde takvimde herhangi bir degisiklik olup olmadigini kontrol etmek icin hasChange booleanini ekledik
+
+store>schedule>saga.ts altinda 
+yield, fonksiyonun çalışmasını duraklatır, verilen değeri döndürür ve daha sonra devam eder.
+Action tetiklendi, reducer'a SUCCESS gönder ki state güncellensin ya da fail olsun
+
+
+src>component>calender>index.ts de 
+dispatch: Redux action'larını tetiklemek için
+hasChanges: Redux'tan gelen bayrak, kaydet butonu göster/gizle
+showToast: Pop-up bildirim göster/gizle (local state)
+FullCalendar event'i id ile tanır
+extendedProps.assignmentId ile hangi assignment'ı güncellediğimizi biliriz

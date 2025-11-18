@@ -7,12 +7,15 @@ import type { UserInstance } from "../../models/user";
 import FullCalendar from "@fullcalendar/react";
 import interactionPlugin from "@fullcalendar/interaction";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import type { EventInput } from "@fullcalendar/core/index.js";
+import type { EventInput, EventDropArg } from "@fullcalendar/core/index.js";
 import "../profileCalendar.scss";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { updateAssignmentDate, saveSchedule } from "../../store/schedule/actions";
+import { getHasChanges } from "../../store/schedule/selector";
 
 dayjs.extend(utc);
 dayjs.extend(isSameOrBefore);
@@ -62,11 +65,14 @@ type CalendarContainerProps = {
 
 const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
   const calendarRef = useRef<FullCalendar>(null);
+  const dispatch = useAppDispatch();
+  const hasChanges = useAppSelector(getHasChanges);
 
   const [events, setEvents] = useState<EventInput[]>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [showEventModal, setShowEventModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
   const [initialDate, setInitialDate] = useState<Date>(
     dayjs(schedule?.scheduleStartDate).toDate()
   );
@@ -91,12 +97,14 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
           const shiftColor = getShiftColor(shift.name);
           
           works.push({
+            id: assignment.id,
             title: shift.name,
             date: dayjs(assignment.shiftStart).format("YYYY-MM-DD"),
             className: `staff-event`,
             backgroundColor: shiftColor,
             borderColor: shiftColor,
             extendedProps: {
+              assignmentId: assignment.id,
               staffName: selectedStaff.name,
               shiftName: shift.name,
               shiftStart: assignment.shiftStart,
@@ -153,6 +161,16 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
     }
   }, [selectedStaffId]);
 
+  useEffect(() => {
+    if (hasChanges) {
+      setShowToast(true);
+      const timer = setTimeout(() => {
+        setShowToast(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [hasChanges]);
+
   const handleEventClick = (clickInfo: any) => {
     const event = clickInfo.event;
     
@@ -181,15 +199,64 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
     setShowEventModal(true);
   };
 
+  const handleEventDrop = (dropInfo: EventDropArg) => {
+    const { event } = dropInfo;
+    
+    // Only allow dragging shift events not pair events
+    if (event.extendedProps.isPair) {
+      dropInfo.revert();
+      return;
+    }
+
+    const assignmentId = event.extendedProps.assignmentId;
+    const newDate = dayjs(event.start).format("YYYY-MM-DD");
+
+    if (assignmentId && newDate) {
+      dispatch(updateAssignmentDate({
+        assignmentId,
+        newDate,
+        onSuccess: () => {
+          console.log(`Assignment ${assignmentId} successfully moved to ${newDate}`);
+        },
+        onError: () => {
+          console.error(`Failed to update assignment ${assignmentId}`);
+          dropInfo.revert();
+        },
+      }) as any);
+    }
+  };
+
   const closeModal = () => {
     setShowEventModal(false);
     setSelectedEvent(null);
   };
 
+  const handleSaveChanges = () => {
+    dispatch(saveSchedule({
+      onSuccess: () => {
+        console.log('Değişiklikler başarıyla kaydedildi');
+      },
+      onError: () => {
+        console.error('Değişiklikler kaydedilemedi');
+      },
+    }) as any);
+  };
+
   return (
     <div className="calendar-section">
-      <div className="calendar-wrapper">
-        <div className="staff-list">
+      {showToast && (
+        <div className="toast-notification">
+          Kaydedilmemiş değişiklikleriniz var
+        </div>
+      )}
+      {hasChanges && (
+        <div className="save-button-container">
+          <button className="save-btn" onClick={handleSaveChanges}>
+            Kaydet
+          </button>
+        </div>
+      )}
+      <div className="calendar-wrapper">       <div className="staff-list">
           {schedule?.staffs?.map((staff: any, index: number) => {
             const staffColor = getStaffColor(index);
             return (
@@ -228,6 +295,7 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
           fixedWeekCount={true}
           showNonCurrentDates={true}
           eventClick={handleEventClick}
+          eventDrop={handleEventDrop}
           eventContent={(eventInfo: any) => (
             <div className="event-content">
               <p>{eventInfo.event.title}</p>

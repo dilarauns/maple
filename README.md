@@ -44,11 +44,6 @@ The application will open at `http://localhost:5173`
 - **OFF DAY Badges**: Staff with off-days in selected date range display a red "OFF DAY" badge
 - **Quick Clear**: Reset all filters with "Clear Filters" button
 
-### Loading States
-- **Initial Load**: Animated spinner when fetching schedule data
-- **Skeleton Screens**: Placeholder UI during profile card loading
-- **Save Progress**: "⏳ Saving..." indicator on save button with disabled state during save operation
-
 ### Toast Notifications
 - **Success Messages**: Green toast notification when changes are saved successfully
 - **Error Alerts**: Red toast notification when save operation fails

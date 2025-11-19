@@ -27,10 +27,10 @@ function* asyncFetchSchedule({
     const savedSchedule = Storage.get(SCHEDULE_STORAGE_KEY);
     
     if (savedSchedule && savedSchedule.scheduleId) {
-      // Load from localStorage if exists
+
       yield put(actions.loadScheduleFromStorage(savedSchedule));
     } else {
-      // Otherwise load default response
+
       const response = scheduleReponse;
       yield put(actions.fetchScheduleSuccess(response.data));
     }
@@ -54,10 +54,7 @@ function* asyncUpdateAssignmentDate({
   const { assignmentId, newDate, onSuccess, onError } = payload || {};
   yield put(updateProgress());
   try {
-    // In a real scenario, you would make an API call here
-    // const response: AxiosResponse = yield call(api.updateAssignmentDate, { assignmentId, newDate });
-    
-    // For now, we update the Redux state directly
+
     yield put(actions.updateAssignmentDateSuccess({ assignmentId, newDate }));
 
     onSuccess && onSuccess({ assignmentId, newDate });
@@ -76,11 +73,10 @@ function* asyncSaveSchedule({
 }: Action<Callbacks>) {
   yield put(updateProgress());
   try {
-    // Get current schedule from state
+
     const state: RootStateInstance = yield select();
     const schedule: ScheduleInstance = state.schedule.schedule;
 
-    // Save to localStorage
     Storage.set(SCHEDULE_STORAGE_KEY, schedule);
 
     yield put(actions.saveScheduleSuccess());

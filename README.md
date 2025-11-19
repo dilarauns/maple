@@ -1,49 +1,65 @@
-# React Project - 2025
+# Staff Scheduling Calendar
 
-Merhaba, bu projede sizden belirtilen hataların giderilmesi ve yeni özelliklerin uygulamaya eklenmesi beklenmektedir.
+A modern React-based staff scheduling application with an interactive calendar, shift management, and data visualization.
 
-## 📦 Kurulum ve Başlatma Adımları
+![Light Mode](lightpage.png)
+![Dark Mode](dark.png)
 
-Projeyi çalıştırmak için aşağıdaki adımları takip edin:
+## Features
 
+- **Interactive Calendar**: Drag-and-drop shift assignments with FullCalendar integration
+- **Staff Management**: Color-coded staff members with individual schedules
+- **Shift Visualization**: Bar charts showing shift distribution and hours per staff
+- **Dark Mode**: Toggle between light and dark themes
+- **Profile Management**: Expandable profile cards with user information
+- **Off-Day Tracking**: Visual indicators for staff off-days
+- **Pair Shifts**: Support for paired staff assignments with visual highlights
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js >= 20
+- npm or yarn
+
+### Installation
+
+1. Clone the repository
+```sh
+git clone <repository-url>
+cd react-project-2025-november
+```
+
+2. Install dependencies
 ```sh
 npm install --legacy-peer-deps
+```
+
+3. Start the development server
+```sh
 npm run dev
 ```
 
-## 🐞 Hata Düzeltmeleri ve 📌 İstekler
+The application will open at `http://localhost:5173`
 
-**1. ProfileCard Bileşeni – Rol Gösterimi** (15P)
-- Sorun: Kullanıcı profili henüz yüklenmemişken, ProfileCard bileşeninde role alanı gösterilemiyor.
+## Features Overview
 
-- Beklenen Davranış: Eğer state üzerinden profil datası henüz gelmemişse, localStorage içindeki role bilgisi kullanılmalı ve düzgün şekilde ekranda gösterilmelidir. Uygulama bu durumda hata vermemelidir.
+### Calendar Management
+- View and manage staff schedules by month
+- Drag-and-drop shifts to different dates
+- Click on events to view detailed information
+- Color-coded shifts (Morning/Night) and staff members
+- Weekend and off-day highlighting
 
-**2. Calendar Bug ve Event Detayı** (25P)
-- Sorun: projede CalendarContainer içerisindeki bir takım mantık ve değişkenlerin kullanım hatalarından dolayı eventler calendarda render olamıyor.
+### Data Visualization
+- Bar chart showing total shift hours per staff member
+- Separate bars for morning and night shifts
 
-- Beklenen Davranış: Bütün eventler yani assignmentlar takvimde görüntülenmeli ve bu görüntüleme seçili staff üzerindem olmalıdır.
+### User Interface
+- Responsive design with mobile support
+- Dark mode toggle with persistent theme
+- Custom scrollbar styling
+- Smooth animations and transitions
 
-- Takvim üzerindeki eventlerin her biri kendine özel bir renk ile highlight edilmelidir. Bu renklendirme shift ve staff bazlı olmalıdır. Ek olarak, takvimdeki bir etkinliğe tıklandığında bir pop-up açılarak, ilgili etkinliğe ait personel adı, vardiya adı, tarih, başlangıç ve bitiş saatleri gibi tüm bilgilerin görüntülenmesi beklenmektedir.
-
-**4. Pair Günlerinin Altını Çizme** (25P)
-- Sorun: highlightedPair sınıfı tüm günlere uygulandığı için takvimdeki bütün günlerin altı çizili görünmekte.
-
-- Beklenen Davranış: Her personelin sahip olduğu pair listesi, o personelin başka bir personelle birlikte çalıştığı tarih aralıklarını belirtmektedir. Takvimde, seçili personelin bu tarih aralıklarına denk gelen günleri (pair günleri), highlightedPair sınıfı ile altı çizili olarak gösterilmelidir. Diğer günler normal şekilde görünmelidir.
-
-- Ek olarak beklenen davranış, her pair’in takvimde kendi rengiyle temsil edilmesidir. Yani, takvimde tıklanabilir durumda olan her personel farklı bir renkte gösterilmelidir. Örneğin, Tuba seçili personel ise ve 14. gün Esra ile bir pair oluşturuyorsa, Esra'nın rengi kırmızıysa, ayın 14'ü kırmızı alt çizgiyle vurgulanmalıdır.
-
-**5. Takvimde Sürükle-Bırak ile Event Güncelleme** (25P)
-- Beklenen Davranış: Takvimdeki bir etkinlik sürüklenerek günü değiştirildiğinde, bu değişiklik state/redux verisine yansıtılmalıdır yani selector ile redux üzerinden çekilen schedule verisine işlenilmelidir. Bu işlemlerin, ilgili bileşen içinde ve projenin store klasörü altında gerçekleştirilmesi gerekmektedir. (25P)
-
-**6. Tasarım Güncellemeleri** (10P + Ekstra)
-- Beklenti: Mevcut bileşenlerin görsel ve yapısal tasarımları elinizdeki verilere uygun şekilde iyileştirilmeli ve modern, kullanıcı dostu bir arayüz haline getirilmelidir.
-
-#
 ---
-#
- 
-📝 **Öneri**: Kullanıcı deneyimini artıracak şekilde yeniden düzenlemeler yapabilir, component hiyerarşisini sadeleştirebilir ve UI/UX anlamında profesyonel dokunuşlar ekleyebilirsiniz.
 
-**Her geliştirme adımında kodun okunabilirliğine, performansına ve bileşenlerin yeniden kullanılabilirliğine dikkat edilmesi beklenmektedir.Proje ile ilgili sorularınızı info@smart-maple.com adresine iletebilirsiniz.**
-
-✨ Teşekkürler!

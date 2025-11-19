@@ -193,7 +193,6 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
       isPair: false,
     };
     
-    // Modal için
     setModalEvent(eventData);
     setShowEventModal(true);
   };

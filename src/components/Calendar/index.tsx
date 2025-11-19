@@ -12,13 +12,16 @@ import "../profileCalendar.scss";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { updateAssignmentDate, saveSchedule } from "../../store/schedule/actions";
 import { getHasChanges } from "../../store/schedule/selector";
+import { getProgressStatus } from "../../store/ui/selectors";
 
 dayjs.extend(utc);
 dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
 dayjs.extend(customParseFormat);
 
 const STAFF_COLORS = [
@@ -67,15 +70,59 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
   const calendarRef = useRef<FullCalendar>(null);
   const dispatch = useAppDispatch();
   const hasChanges = useAppSelector(getHasChanges);
+  const isSaving = useAppSelector(getProgressStatus);
 
   const [events, setEvents] = useState<EventInput[]>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [modalEvent, setModalEvent] = useState<any>(null);
   const [showEventModal, setShowEventModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [initialDate, setInitialDate] = useState<Date>(
     dayjs(schedule?.scheduleStartDate).toDate()
   );
+
+  // Filter state
+  const [shiftFilter, setShiftFilter] = useState<string>("all");
+  const [dateRangeFilter, setDateRangeFilter] = useState<{ start: string; end: string } | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // Check if staff has shifts of specific type
+  const staffHasShiftType = (staffId: string, type: string): boolean => {
+    if (type === "all") return true;
+    
+    const staffAssignments = schedule?.assignments?.filter(a => a.staffId === staffId) || [];
+    
+    return staffAssignments.some((assignment) => {
+      const shift = schedule?.shifts?.find(s => s.id === assignment.shiftId);
+      if (!shift) return false;
+      
+      const shiftName = shift.name.toLowerCase();
+      if (type === "morning") {
+        return shiftName.includes('morning') || shiftName.includes('sabah') || shiftName.includes('gündüz') || shiftName.includes('gunduz');
+      } else if (type === "night") {
+        return shiftName.includes('night') || shiftName.includes('gece');
+      }
+      return false;
+    });
+  };
+
+  // Check if staff has off day in date range
+  const staffHasOffDayInRange = (staffId: string): boolean => {
+    if (!dateRangeFilter?.start || !dateRangeFilter?.end) return false;
+    
+    const staff = schedule?.staffs?.find(s => s.id === staffId);
+    if (!staff?.offDays) return false;
+    
+    const startDate = dayjs(dateRangeFilter.start);
+    const endDate = dayjs(dateRangeFilter.end);
+    
+    return staff.offDays.some((offDay: string) => {
+      const offDayDate = dayjs(offDay, "DD.MM.YYYY");
+      return offDayDate.isSameOrAfter(startDate, 'day') && offDayDate.isSameOrBefore(endDate, 'day');
+    });
+  };
 
   const generateStaffBasedCalendar = () => {
     const selectedStaff = schedule?.staffs?.find(s => s.id === selectedStaffId);
@@ -87,32 +134,59 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
 
     const works: any[] = [];
 
-    schedule?.assignments
-      ?.filter(a => a.staffId === selectedStaffId)
-      .forEach((assignment) => {
+    // Apply filters
+    let filteredAssignments = schedule?.assignments?.filter(a => a.staffId === selectedStaffId) || [];
+
+    // Shift filter
+    if (shiftFilter !== "all") {
+      filteredAssignments = filteredAssignments.filter((assignment) => {
         const shift = schedule?.shifts?.find(s => s.id === assignment.shiftId);
+        if (!shift) return false;
         
-        if (shift) {
-          const shiftColor = getShiftColor(shift.name);
-          
-          works.push({
-            id: assignment.id,
-            title: shift.name,
-            date: dayjs(assignment.shiftStart).format("YYYY-MM-DD"),
-            className: `staff-event`,
-            backgroundColor: shiftColor,
-            borderColor: shiftColor,
-            extendedProps: {
-              assignmentId: assignment.id,
-              staffName: selectedStaff.name,
-              shiftName: shift.name,
-              shiftStart: assignment.shiftStart,
-              shiftEnd: assignment.shiftEnd,
-              isPair: false,
-            },
-          });
+        const shiftName = shift.name.toLowerCase();
+        if (shiftFilter === "morning") {
+          return shiftName.includes('morning') || shiftName.includes('sabah') || shiftName.includes('gündüz') || shiftName.includes('gunduz');
+        } else if (shiftFilter === "night") {
+          return shiftName.includes('night') || shiftName.includes('gece');
         }
+        return true;
       });
+    }
+
+    // Date range filter
+    if (dateRangeFilter && dateRangeFilter.start && dateRangeFilter.end) {
+      filteredAssignments = filteredAssignments.filter((assignment) => {
+        const assignmentDate = dayjs(assignment.shiftStart);
+        const startDate = dayjs(dateRangeFilter.start);
+        const endDate = dayjs(dateRangeFilter.end);
+        return assignmentDate.isSameOrAfter(startDate, 'day') && assignmentDate.isSameOrBefore(endDate, 'day');
+      });
+    }
+
+    filteredAssignments.forEach((assignment) => {
+      const shift = schedule?.shifts?.find(s => s.id === assignment.shiftId);
+      
+      if (shift) {
+        const shiftColor = getShiftColor(shift.name);
+        
+        works.push({
+          id: assignment.id,
+          title: shift.name,
+          date: dayjs(assignment.shiftStart).format("YYYY-MM-DD"),
+          className: `staff-event`,
+          backgroundColor: shiftColor,
+          borderColor: shiftColor,
+          extendedProps: {
+            assignmentId: assignment.id,
+            staffName: selectedStaff.name,
+            shiftName: shift.name,
+            shiftStart: assignment.shiftStart,
+            shiftEnd: assignment.shiftEnd,
+            isPair: false,
+          },
+        });
+      }
+    });
 
     // Add pair events to calendar (for visual display on calendar)
     if (selectedStaff.pairList && selectedStaff.pairList.length > 0) {
@@ -162,7 +236,7 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
     if (selectedStaffId) {
       generateStaffBasedCalendar();
     }
-  }, [selectedStaffId]);
+  }, [selectedStaffId, shiftFilter, dateRangeFilter]);
 
   useEffect(() => {
     if (hasChanges) {
@@ -237,42 +311,189 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
     setModalEvent(null);
   };
 
+  const showToastNotification = (message: string, type: 'success' | 'error') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
   const handleSaveChanges = () => {
     dispatch(saveSchedule({
       onSuccess: () => {
-        console.log('Değişiklikler başarıyla kaydedildi');
+        showToastNotification('Changes saved successfully! ✓', 'success');
       },
       onError: () => {
-        console.error('Değişiklikler kaydedilemedi');
+        showToastNotification('Failed to save changes', 'error');
       },
     }) as any);
+  };
+
+  const handleDateSelect = (date: string, type: 'start' | 'end') => {
+    setDateRangeFilter(prev => {
+      if (type === 'start') {
+        return { start: date, end: prev?.end || '' };
+      } else {
+        return { start: prev?.start || '', end: date };
+      }
+    });
+  };
+
+  const clearDateRange = () => {
+    setDateRangeFilter(null);
+    setShowDatePicker(false);
+  };
+
+  const formatDateDisplay = (dateStr: string) => {
+    if (!dateStr) return '';
+    return dayjs(dateStr).format('MMM DD, YYYY');
   };
 
   return (
     <div className="calendar-section">
       {showToast && (
+        <div className={`toast-notification ${toastType}`}>
+          <span className="toast-icon">{toastType === 'success' ? '✓' : '✕'}</span>
+          <span className="toast-message">{toastMessage}</span>
+        </div>
+      )}
+      {false && (
         <div className="toast-notification">
           You have unsaved changes
         </div>
       )}
-      <div className="calendar-wrapper">
+      
+      <div className="calendar-with-filters">
+        {/* Filter Controls - Left Side */}
+        <div className="filter-sidebar">
+          <h3 className="filter-title">Filters</h3>
+          
+          <div className="filter-group">
+            <label htmlFor="shift-filter" className="filter-label">
+              Shift Type:
+            </label>
+            <select
+              id="shift-filter"
+              value={shiftFilter}
+              onChange={(e) => setShiftFilter(e.target.value)}
+              className="filter-input filter-select"
+            >
+              <option value="all">All Shifts</option>
+              <option value="morning">Morning Shifts</option>
+              <option value="night">Night Shifts</option>
+            </select>
+          </div>
+
+          {/* Date Range Filter with Mini Calendar */}
+          <div className="filter-group date-range-group">
+            <label className="filter-label">
+              Date Range:
+            </label>
+            <div className="date-range-display">
+              <button
+                className="date-range-toggle"
+                onClick={() => setShowDatePicker(!showDatePicker)}
+              >
+                {dateRangeFilter?.start && dateRangeFilter?.end ? (
+                  <span className="date-range-text">
+                    {formatDateDisplay(dateRangeFilter.start)} - {formatDateDisplay(dateRangeFilter.end)}
+                  </span>
+                ) : (
+                  <span className="date-range-placeholder">Select dates...</span>
+                )}
+                <span className="calendar-icon">{showDatePicker ? '▲' : '▼'}</span>
+              </button>
+              
+              {showDatePicker && (
+                <div className="mini-calendar-wrapper">
+                  <div className="mini-calendar-header">
+                    <span className="mini-calendar-title">Select Date Range</span>
+                    <button 
+                      className="mini-calendar-close"
+                      onClick={() => setShowDatePicker(false)}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  
+                  <div className="mini-calendar-inputs">
+                    <div className="mini-date-input-group">
+                      <label htmlFor="start-date">Start Date:</label>
+                      <input
+                        id="start-date"
+                        type="date"
+                        value={dateRangeFilter?.start || ''}
+                        onChange={(e) => handleDateSelect(e.target.value, 'start')}
+                        max={dateRangeFilter?.end || undefined}
+                        className="mini-date-input"
+                      />
+                    </div>
+                    
+                    <div className="mini-date-input-group">
+                      <label htmlFor="end-date">End Date:</label>
+                      <input
+                        id="end-date"
+                        type="date"
+                        value={dateRangeFilter?.end || ''}
+                        onChange={(e) => handleDateSelect(e.target.value, 'end')}
+                        min={dateRangeFilter?.start || undefined}
+                        className="mini-date-input"
+                      />
+                    </div>
+                  </div>
+                  
+                  {dateRangeFilter?.start && dateRangeFilter?.end && (
+                    <button 
+                      className="clear-date-range-btn"
+                      onClick={clearDateRange}
+                    >
+                      Clear Dates
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <button
+            className="filter-clear-btn"
+            onClick={() => {
+              setShiftFilter("all");
+              setDateRangeFilter(null);
+              setShowDatePicker(false);
+            }}
+            title="Clear all filters"
+          >
+            ✕ Clear Filters
+          </button>
+        </div>
+
+        {/* Calendar - Right Side */}
+        <div className="calendar-wrapper">
         <div className="calendar-main">
           <div className="staff-list">
             {schedule?.staffs?.map((staff: any, index: number) => {
               const staffColor = getStaffColor(index);
+              const hasShift = staffHasShiftType(staff.id, shiftFilter);
+              const isDisabled = !hasShift;
+              const hasOffDay = staffHasOffDayInRange(staff.id);
+              
               return (
                 <div
                   key={staff.id}
-                  onClick={() => setSelectedStaffId(staff.id)}
+                  onClick={() => !isDisabled && setSelectedStaffId(staff.id)}
                   className={`staff ${
                     staff.id === selectedStaffId ? "active" : ""
-                  }`}
+                  } ${isDisabled ? "disabled" : ""} ${hasOffDay ? "has-off-day" : ""}`}
                   style={{
-                    backgroundColor: staff.id === selectedStaffId ? staffColor : '#ffffff',
-                    borderColor: staffColor,
-                    color: staff.id === selectedStaffId ? '#ffffff' : staffColor
+                    backgroundColor: staff.id === selectedStaffId ? staffColor : (isDisabled ? '#e0e0e0' : '#ffffff'),
+                    borderColor: isDisabled ? '#ccc' : staffColor,
+                    color: staff.id === selectedStaffId ? '#ffffff' : (isDisabled ? '#999' : staffColor),
+                    cursor: isDisabled ? 'not-allowed' : 'pointer',
+                    opacity: isDisabled ? 0.5 : 1
                   }}
                 >
+                  {hasOffDay && <span className="off-day-badge">OFF DAY</span>}
                   <span>{staff.name}</span>
                 </div>
               );
@@ -304,8 +525,8 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
             }}
             customButtons={{
               saveButton: {
-                text: 'Save',
-                click: handleSaveChanges,
+                text: isSaving ? '⏳ Saving...' : 'Save',
+                click: isSaving ? undefined : handleSaveChanges,
                 hint: 'Save changes',
               }
             }}
@@ -456,6 +677,7 @@ const CalendarContainer = ({ schedule, auth }: CalendarContainerProps) => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

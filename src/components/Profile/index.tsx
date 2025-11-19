@@ -5,10 +5,26 @@ import "../profileCalendar.scss";
 
 type ProfileCardProps = {
     profile: UserInstance;
+    isLoading?: boolean;
 };
 
- const ProfileCard = ({ profile }: ProfileCardProps) => {
+ const ProfileCard = ({ profile, isLoading = false }: ProfileCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  
+  if (isLoading) {
+    return (
+      <div className="profile-section">
+        <div className="profile-card skeleton">
+          <div className="skeleton-avatar"></div>
+          <div className="skeleton-content">
+            <div className="skeleton-line skeleton-title"></div>
+            <div className="skeleton-line skeleton-text"></div>
+            <div className="skeleton-line skeleton-text"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="profile-section">

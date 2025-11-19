@@ -7,7 +7,7 @@ import ShiftBarChart from "../ShiftBarChart";
 import { useSelector } from "react-redux";
 import { getAuthUser } from "../../store/auth/selector";
 import { getSchedule } from "../../store/schedule/selector";
-import { getIsDarkMode } from "../../store/ui/selectors";
+import { getIsDarkMode, getProgressStatus } from "../../store/ui/selectors";
 
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
@@ -23,6 +23,7 @@ const ProfileCalendar = () => {
   const auth = useSelector(getAuthUser);
   const schedule = useSelector(getSchedule);
   const isDarkMode = useSelector(getIsDarkMode);
+  const isLoading = useSelector(getProgressStatus);
 
   useEffect(() => {
     dispatch(setProfile() as any);
@@ -48,11 +49,23 @@ const ProfileCalendar = () => {
       <button className="dark-mode-toggle" onClick={toggleDarkMode} title={isDarkMode ? 'Light Mode' : 'Dark Mode'}>
         {isDarkMode ? '☀' : '☾'}
       </button>
-      <div className="profile-chart-wrapper">
-        <ProfileCard profile={auth} />
-        <ShiftBarChart schedule={schedule} />
-      </div>
-      <CalendarContainer schedule={schedule} auth={auth} />
+      
+      {isLoading ? (
+        <div className="loading-container">
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+            <p>Loading schedule data...</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="profile-chart-wrapper">
+            <ProfileCard profile={auth} isLoading={isLoading} />
+            <ShiftBarChart schedule={schedule} />
+          </div>
+          <CalendarContainer schedule={schedule} auth={auth} />
+        </>
+      )}
     </div>
   );
 };

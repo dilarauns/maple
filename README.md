@@ -8,11 +8,12 @@ A modern React-based staff scheduling application with an interactive calendar, 
 ## Features
 
 - **Interactive Calendar**: Drag-and-drop shift assignments with FullCalendar integration
+- **Advanced Filtering System**: Filter shifts by type and date range with smart staff management
 - **Staff Management**: Color-coded staff members with individual schedules
 - **Shift Visualization**: Bar charts showing shift distribution and hours per staff
 - **Dark Mode**: Toggle between light and dark themes
 - **Profile Management**: Expandable profile cards with user information
-- **Off-Day Tracking**: Visual indicators for staff off-days
+- **Off-Day Tracking**: Visual indicators for staff off-days in date ranges
 - **Pair Shifts**: Support for paired staff assignments with visual highlights
 
 ### Installation
@@ -36,6 +37,22 @@ npm run dev
 The application will open at `http://localhost:5173`
 
 ## Features Overview
+
+### Advanced Filtering System
+- **Shift Type Filter**: Filter by All/Morning/Night shifts - staff without selected shift type are automatically disabled
+- **Date Range Filter**: Select custom date range with mini calendar picker - only shows shifts within selected period
+- **OFF DAY Badges**: Staff with off-days in selected date range display a red "OFF DAY" badge
+- **Quick Clear**: Reset all filters with "Clear Filters" button
+
+### Loading States
+- **Initial Load**: Animated spinner when fetching schedule data
+- **Skeleton Screens**: Placeholder UI during profile card loading
+- **Save Progress**: "⏳ Saving..." indicator on save button with disabled state during save operation
+
+### Toast Notifications
+- **Success Messages**: Green toast notification when changes are saved successfully
+- **Error Alerts**: Red toast notification when save operation fails
+- **Auto-dismiss**: Notifications automatically disappear after 3 seconds
 
 ### Calendar Management
 - View and manage staff schedules by month

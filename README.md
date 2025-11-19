@@ -15,13 +15,6 @@ A modern React-based staff scheduling application with an interactive calendar, 
 - **Off-Day Tracking**: Visual indicators for staff off-days
 - **Pair Shifts**: Support for paired staff assignments with visual highlights
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js >= 20
-- npm or yarn
-
 ### Installation
 
 1. Clone the repository
